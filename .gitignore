@@ -127,3 +127,9 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# csv file
+UNSW-NB15-BALANCED-TRAIN.csv
+
+# pycharm
+.idea/
