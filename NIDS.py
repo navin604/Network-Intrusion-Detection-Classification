@@ -60,3 +60,11 @@ print(f"micro f1 score: {metrics.f1_score(y_test, y_pred, average='micro')}\n")
 text = tree.export_text(clf)
 print(text)
 joblib.dump(clf, "dt_model")
+
+
+def process_args():
+    print("Processing Args")
+
+
+if __name__ == "__main__":
+    process_args()
