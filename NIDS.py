@@ -18,17 +18,14 @@ def main():
     file, classification_method, task, model = process_args(sys.argv[1:])
     validate_args(classification_method, task)
     pima = pre_processing(file)
-    match classification_method:
-        case "decision_tree":
-            decision_tree(pima)
-
-        case "nav_classifier":
-            print("You can become a Data Scientist")
-
-        case "Bray_insert_classifier":
-            print("You can become a backend developer")
-        case _:
-            print("No classifier specified")
+    if classification_method == "decision_tree":
+        decision_tree(pima)
+    elif classification_method == "nav_classifier":
+        print("You can become a Data Scientist")
+    elif classification_method == "Bray_insert_classifier":
+        print("You can become a backend developer")
+    else:
+        print("No classifier specified")
 
 
 def decision_tree(pima):
