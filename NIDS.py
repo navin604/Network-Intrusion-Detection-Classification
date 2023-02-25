@@ -26,7 +26,7 @@ def main():
             print("You can become a Data Scientist")
 
         case "Bray_insert_classifier":
-            print("You can become a backend developer")
+            print("You can become a backend dev")
         case _:
             print("No classifier specified")
 
