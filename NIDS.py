@@ -46,10 +46,9 @@ def svm(pima, task, model):
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.5)
     start = time.time()
 
-    if task == "Label":
-        pca = PCA(n_components=10)
-        X_train = pca.fit_transform(X_train)
-        X_test = pca.transform(X_test)
+    pca = PCA()
+    X_train = pca.fit_transform(X_train)
+    X_test = pca.transform(X_test)
 
     if not model:
         # Instantiate SVC model
