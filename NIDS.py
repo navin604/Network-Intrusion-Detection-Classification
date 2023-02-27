@@ -1,7 +1,13 @@
+import pickle
 import sys
+import time
+
 from sklearn import metrics
+from sklearn.decomposition import PCA
 from sklearn.feature_selection import RFE
 import pandas as pd
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
 from sklearn.tree import DecisionTreeClassifier, plot_tree
 from sklearn.model_selection import train_test_split
 import joblib
@@ -9,9 +15,11 @@ import ipaddress
 import matplotlib.pyplot as plt
 from sklearn import tree
 import math
+from sklearn.svm import LinearSVC
+from sklearn.metrics import classification_report, accuracy_score
 
-tasks = ["Label","attack_cat"]
-classifier = ["decision_tree","nav_classifier","Bray_insert_classifier"]
+tasks = ["Label", "attack_cat"]
+classifier = ["decision_tree", "svm", "Bray_insert_classifier"]
 
 
 def main():
@@ -20,16 +28,47 @@ def main():
     pima = pre_processing(file)
     if classification_method == "decision_tree":
         decision_tree(pima)
-    elif classification_method == "nav_classifier":
-        print("You can become a Data Scientist")
+    elif classification_method == "svm":
+        svm(pima, task, model)
     elif classification_method == "Bray_insert_classifier":
         print("You can become a backend developer")
     else:
         print("No classifier specified")
 
 
+def svm(pima, task, model):
+    # Loading variables into Pandas dataframe without columns
+    X = pima.drop(["attack_cat", "Label"], axis=1)
+    # Target data
+    y = pima[task]
+
+    # Divide data into training and testing
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.5)
+    start = time.time()
+
+    if task == "Label":
+        pca = PCA(n_components=10)
+        X_train = pca.fit_transform(X_train)
+        X_test = pca.transform(X_test)
+
+    if not model:
+        # Instantiate SVC model
+        clf = make_pipeline(StandardScaler(), LinearSVC(multi_class="ovr", dual=False))
+        clf.fit(X_train, y_train)
+        filename = task + '.sav'
+        pickle.dump(clf, open(filename, 'wb'))
+
+    if model:
+        clf = pickle.load(open(model, 'rb'))
+
+    y_pred = clf.predict(X_test)
+
+    print(classification_report(y_test, y_pred))
+    print(f"micro f1 score: {metrics.f1_score(y_test, y_pred, average='micro')}\n")
+
+
+
 def decision_tree(pima):
-    print("DECISION")
     # Feature selection
     X = pima.drop(["attack_cat", "Label"], axis=1)
     y = pima.attack_cat  # Target variable
@@ -96,6 +135,8 @@ def validate_args(classifier, task):
 
 
 def process_args(args):
+    if len(args) == 3:
+        args.append(None)
     return args[0], args[1], args[2], args[3]
 
 
