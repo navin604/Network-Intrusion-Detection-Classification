@@ -56,8 +56,7 @@ def svm(pima, task, model):
         clf.fit(X_train, y_train)
         filename = task + '.sav'
         pickle.dump(clf, open(filename, 'wb'))
-
-    if model:
+    else:
         clf = pickle.load(open(model, 'rb'))
 
     y_pred = clf.predict(X_test)
