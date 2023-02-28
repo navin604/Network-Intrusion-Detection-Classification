@@ -20,7 +20,7 @@ import warnings
 from sklearn.svm import LinearSVC
 from sklearn.metrics import classification_report, accuracy_score
 warnings.filterwarnings('always')
-
+warnings.filterwarnings('ignore')
 
 tasks = ["Label", "attack_cat"]
 classifiers = ["decision_tree", "svm", "sgd"]
