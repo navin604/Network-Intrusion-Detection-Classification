@@ -1,8 +1,13 @@
 import sys
+import pickle
 from sklearn import metrics
 from sklearn.feature_selection import RFE
 import pandas as pd
 from sklearn.tree import DecisionTreeClassifier, plot_tree
+from sklearn.linear_model import SGDClassifier
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import FactorAnalysis
+from sklearn.pipeline import make_pipeline
 from sklearn.model_selection import train_test_split
 import joblib
 import ipaddress
@@ -10,25 +15,22 @@ import matplotlib.pyplot as plt
 from sklearn import tree
 import math
 
-tasks = ["Label","attack_cat"]
-classifier = ["decision_tree","nav_classifier","Bray_insert_classifier"]
+tasks = ["Label", "attack_cat"]
+classifier = ["decision_tree", "nav_classifier", "sgd"]
 
 
 def main():
     file, classification_method, task, model = process_args(sys.argv[1:])
     validate_args(classification_method, task)
     pima = pre_processing(file)
-    match classification_method:
-        case "decision_tree":
-            decision_tree(pima)
-
-        case "nav_classifier":
-            print("You can become a Data Scientist")
-
-        case "Bray_insert_classifier":
-            print("You can become a backend developer")
-        case _:
-            print("No classifier specified")
+    if classification_method == "decision_tree":
+        decision_tree(pima)
+    elif classification_method == "nav_classifier":
+        print("You can become a Data Scientist")
+    elif classification_method == "sgd":
+        stochastic_gradient_descent(pima, task, model)
+    else:
+        print("No classifier specified")
 
 
 def decision_tree(pima):
@@ -56,12 +58,48 @@ def decision_tree(pima):
     print("Accuracy: {:.2f}%".format(metrics.accuracy_score(y_test, y_pred) * 100))
     print(f"macro f1 score: {metrics.f1_score(y_test, y_pred, average='macro')}")
     print(f"micro f1 score: {metrics.f1_score(y_test, y_pred, average='micro')}\n")
+    print(metrics.classification_report(y_test, y_pred, digits=6))
     # fig, ax = plt.subplots(figsize=(12, 12))
     # plot_tree(clf, filled=True, ax=ax, feature_names=pima.columns, class_names=y_train.unique())
     # plt.show()
     text = tree.export_text(clf)
     print(text)
     joblib.dump(clf, "dt_model")
+
+
+def stochastic_gradient_descent(pima, task, model):
+    X = pima.drop(["attack_cat", "Label"], axis=1)
+    y = pima[task]
+
+    # Split data into test and train
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
+
+    # Create Classifier and implement scaling
+    try:
+        if not model:
+            clf = make_pipeline(StandardScaler(), SGDClassifier(max_iter=10000, loss="modified_huber"))
+        else:
+            clf = pickle.load(open(model, 'rb'))
+    except FileNotFoundError:
+        print("Model not found. Exiting...")
+        return
+
+    # Using Factor Analysis analysis technique
+    fa = FactorAnalysis()
+
+    X_train_cca = fa.fit_transform(X_train, y_train)
+    X_test_cca = fa.transform(X_test)
+
+    # Fit model
+    clf.fit(X_train_cca, y_train)
+
+    # Predict using model
+    y_pred = clf.predict(X_test_cca)
+
+    print(metrics.classification_report(y_test, y_pred, digits=6))
+    print("Accuracy: {:.2f}%".format(metrics.accuracy_score(y_test, y_pred) * 100))
+    print(f"macro f1 score: {metrics.f1_score(y_test, y_pred, average='macro')}")
+    print(f"micro f1 score: {metrics.f1_score(y_test, y_pred, average='micro')}\n")
 
 
 def pre_processing(csv):
@@ -99,6 +137,8 @@ def validate_args(classifier, task):
 
 
 def process_args(args):
+    if len(args) == 3:
+        args.append(None)
     return args[0], args[1], args[2], args[3]
 
 
