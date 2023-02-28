@@ -71,28 +71,38 @@ def stochastic_gradient_descent(pima, task, model):
     X = pima.drop(["attack_cat", "Label"], axis=1)
     y = pima[task]
 
-    # Split data into test and train
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
+    if not model:
+        # Split data into test and train
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
 
-    # Create Classifier and implement scaling
-    try:
-        if not model:
-            clf = make_pipeline(StandardScaler(), SGDClassifier(max_iter=10000, loss="modified_huber"))
-        else:
-            clf = pickle.load(open(model, 'rb'))
-    except FileNotFoundError:
-        print("Model not found. Exiting...")
-        return
+        # Create Classifier and implement scaling
+        clf = make_pipeline(StandardScaler(), SGDClassifier(max_iter=10000, loss="modified_huber"))
 
-    # Using Factor Analysis analysis technique
-    fa = FactorAnalysis()
+        # Using Factor Analysis analysis technique
+        fa = FactorAnalysis()
+        X_train_cca = fa.fit_transform(X_train, y_train)
 
-    X_train_cca = fa.fit_transform(X_train, y_train)
+        # Fit model
+        clf.fit(X_train_cca, y_train)
+
+        # Save model
+        with open(f"sgd_{task}.sav", 'wb') as model_file:
+            pickle.dump([fa, clf], model_file)
+
+    else:
+        try:
+            X_test = X
+            y_test = y
+
+            # Load model
+            with open(model, 'rb') as model_file:
+                fa, clf = pickle.load(model_file)
+        except FileNotFoundError:
+            print("Model not found. Exiting...")
+            return
+
+    # Transform test data using Factor Analysis
     X_test_cca = fa.transform(X_test)
-
-    # Fit model
-    clf.fit(X_train_cca, y_train)
-
     # Predict using model
     y_pred = clf.predict(X_test_cca)
 
