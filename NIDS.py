@@ -85,7 +85,7 @@ def stochastic_gradient_descent(pima, task, model):
         # Fit model
         clf.fit(X_train_cca, y_train)
 
-        # Save model
+        # Save model by writing bytes
         with open(f"sgd_{task}.sav", 'wb') as model_file:
             pickle.dump([fa, clf], model_file)
 
@@ -94,11 +94,14 @@ def stochastic_gradient_descent(pima, task, model):
             X_test = X
             y_test = y
 
-            # Load model
+            # Load model by reading bytes
             with open(model, 'rb') as model_file:
                 fa, clf = pickle.load(model_file)
         except FileNotFoundError:
             print("Model not found. Exiting...")
+            return
+        except EOFError:
+            print("Model is incorrect or is corrupt. Exiting...")
             return
 
     # Transform test data using Factor Analysis
