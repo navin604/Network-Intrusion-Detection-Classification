@@ -42,24 +42,26 @@ def svm(pima, task, model):
     # Target data
     y = pima[task]
 
-    # Divide data into training and testing
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.5)
-    start = time.time()
+    if model:
+        X_test = X
+        y_test = y
+        file = open(model, 'rb')
+        pca, clf = pickle.load(file)
 
-    pca = PCA()
-    X_train = pca.fit_transform(X_train)
-    X_test = pca.transform(X_test)
-
-    if not model:
+    else:
+        # Divide data into training and testing
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
+        pca = PCA()
+        X_train = pca.fit_transform(X_train)
         # Instantiate SVC model
         clf = make_pipeline(StandardScaler(), LinearSVC(multi_class="ovr", dual=False))
         clf.fit(X_train, y_train)
-        filename = task + '.sav'
-        pickle.dump(clf, open(filename, 'wb'))
+        filename = "svm_" + task + '.sav'
+        file = open(filename, 'wb')
+        pickle.dump([pca, clf], file)
 
-    if model:
-        clf = pickle.load(open(model, 'rb'))
-
+    file.close()
+    X_test = pca.transform(X_test)
     y_pred = clf.predict(X_test)
 
     print(classification_report(y_test, y_pred))
