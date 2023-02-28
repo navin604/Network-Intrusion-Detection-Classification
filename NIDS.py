@@ -8,6 +8,10 @@ import pandas as pd
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.tree import DecisionTreeClassifier, plot_tree
+from sklearn.linear_model import SGDClassifier
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import FactorAnalysis
+from sklearn.pipeline import make_pipeline
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report
 import ipaddress
@@ -17,8 +21,9 @@ from sklearn.svm import LinearSVC
 from sklearn.metrics import classification_report, accuracy_score
 warnings.filterwarnings('always')
 
-tasks = ["Label","attack_cat"]
-classifiers = ["decision_tree","svm","Bray_insert_classifier"]
+
+tasks = ["Label", "attack_cat"]
+classifiers = ["decision_tree", "svm", "sgd"]
 
 
 def main():
@@ -30,8 +35,8 @@ def main():
         decision_tree(pima, task, model)
     elif classification_method == "svm":
         svm(pima, task, model)
-    elif classification_method == "Bray_insert_classifier":
-        print("You can become a backend developer")
+    elif classification_method == "sgd":
+        stochastic_gradient_descent(pima, task, model)
     else:
         print("No classifier specified")
 
@@ -99,6 +104,54 @@ def decision_tree(pima, task, model):
         print(classification_report(y_test, y_pred, target_names=attack_labels))
     else:
         print(classification_report(y_test, y_pred))
+
+
+def stochastic_gradient_descent(pima, task, model):
+    X = pima.drop(["attack_cat", "Label"], axis=1)
+    y = pima[task]
+
+    if not model:
+        # Split data into test and train
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
+
+        # Create Classifier and implement scaling
+        clf = make_pipeline(StandardScaler(), SGDClassifier(max_iter=10000, loss="modified_huber"))
+
+        # Using Factor Analysis analysis technique
+        fa = FactorAnalysis()
+        X_train_cca = fa.fit_transform(X_train, y_train)
+
+        # Fit model
+        clf.fit(X_train_cca, y_train)
+
+        # Save model by writing bytes
+        with open(f"sgd_{task}.sav", 'wb') as model_file:
+            pickle.dump([fa, clf], model_file)
+
+    else:
+        try:
+            X_test = X
+            y_test = y
+
+            # Load model by reading bytes
+            with open(model, 'rb') as model_file:
+                fa, clf = pickle.load(model_file)
+        except FileNotFoundError:
+            print("Model not found. Exiting...")
+            return
+        except EOFError:
+            print("Model is incorrect or is corrupt. Exiting...")
+            return
+
+    # Transform test data using Factor Analysis
+    X_test_cca = fa.transform(X_test)
+    # Predict using model
+    y_pred = clf.predict(X_test_cca)
+
+    print(metrics.classification_report(y_test, y_pred, digits=6))
+    print("Accuracy: {:.2f}%".format(metrics.accuracy_score(y_test, y_pred) * 100))
+    print(f"macro f1 score: {metrics.f1_score(y_test, y_pred, average='macro')}")
+    print(f"micro f1 score: {metrics.f1_score(y_test, y_pred, average='micro')}\n")
 
 
 def pre_processing(csv):

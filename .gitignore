@@ -133,3 +133,4 @@ UNSW-NB15-BALANCED-TRAIN.csv
 
 # pycharm
 .idea/
+*.sav
