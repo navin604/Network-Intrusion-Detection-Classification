@@ -27,7 +27,7 @@ def main():
     pima = pre_processing(file)
 
     if classification_method == "decision_tree":
-        decision_tree(pima)
+        decision_tree(pima, task, model)
     elif classification_method == "svm":
         svm(pima, task, model)
     elif classification_method == "Bray_insert_classifier":
@@ -93,7 +93,10 @@ def decision_tree(pima, task, model):
     print(f"Number of Features: {rfe.n_features_}")
     print(f"Features used: {rfe.get_feature_names_out()}")
     print("Classifier: DecisionTree")
-    print(classification_report(y_test, y_pred, target_names=attack_labels))
+    if task == "attack_cat":
+        print(classification_report(y_test, y_pred, target_names=attack_labels))
+    else:
+        print(classification_report(y_test, y_pred))
 
 
 def pre_processing(csv):
