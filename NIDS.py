@@ -9,7 +9,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.tree import DecisionTreeClassifier, plot_tree
 from sklearn.linear_model import SGDClassifier
 from sklearn.preprocessing import StandardScaler
-from sklearn.decomposition import FactorAnalysis
+from sklearn.decomposition import FactorAnalysis, PCA
 from sklearn.pipeline import make_pipeline
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report
@@ -68,8 +68,12 @@ def svm(pima, task, model):
     X_test = pca.transform(X_test)
     y_pred = clf.predict(X_test)
 
-    print(classification_report(y_test, y_pred))
-    print(f"micro f1 score: {metrics.f1_score(y_test, y_pred, average='micro')}\n")
+    if task == "attack_cat":
+        print(classification_report(y_test, y_pred, target_names=attack_labels))
+        print(f"micro f1 score: {metrics.f1_score(y_test, y_pred, average='micro')}\n")
+    else:
+        print(classification_report(y_test, y_pred))
+
 
 
 def decision_tree(pima, task, model):
