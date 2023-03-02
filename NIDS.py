@@ -1,18 +1,17 @@
 import pickle
 import sys
 import time
+import numpy as np
+from matplotlib import pyplot as plt
 from sklearn import metrics
 from sklearn.feature_selection import RFE
 import pandas as pd
-from sklearn.pipeline import make_pipeline
-from sklearn.preprocessing import StandardScaler
 from sklearn.tree import DecisionTreeClassifier, plot_tree
 from sklearn.linear_model import SGDClassifier
 from sklearn.preprocessing import StandardScaler
-from sklearn.decomposition import FactorAnalysis, PCA
+from sklearn.decomposition import PCA, FactorAnalysis
 from sklearn.pipeline import make_pipeline
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import classification_report
 import ipaddress
 import math
 import warnings
@@ -112,21 +111,20 @@ def decision_tree(pima, task, model):
 def stochastic_gradient_descent(pima, task, model):
     X = pima.drop(["attack_cat", "Label"], axis=1)
     y = pima[task]
+    start = time.time()
 
     if not model:
         # Split data into test and train
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
-
         # Create Classifier and implement scaling
         clf = make_pipeline(StandardScaler(), SGDClassifier(max_iter=10000, loss="modified_huber"))
+        # Using Factor Analysis
+        fa = FactorAnalysis(iterated_power=10)
 
-        # Using Factor Analysis analysis technique
-        fa = FactorAnalysis()
-        X_train_cca = fa.fit_transform(X_train, y_train)
+        X_train_fa = fa.fit_transform(X_train, y_train)
 
         # Fit model
-        clf.fit(X_train_cca, y_train)
-
+        clf.fit(X_train_fa, y_train)
         # Save model by writing bytes
         with open(f"sgd_{task}.sav", 'wb') as model_file:
             pickle.dump([fa, clf], model_file)
@@ -135,10 +133,10 @@ def stochastic_gradient_descent(pima, task, model):
         try:
             X_test = X
             y_test = y
-
             # Load model by reading bytes
             with open(model, 'rb') as model_file:
                 fa, clf = pickle.load(model_file)
+
         except FileNotFoundError:
             print("Model not found. Exiting...")
             return
@@ -146,15 +144,21 @@ def stochastic_gradient_descent(pima, task, model):
             print("Model is incorrect or is corrupt. Exiting...")
             return
 
-    # Transform test data using Factor Analysis
-    X_test_cca = fa.transform(X_test)
+    # Transform test data
+    X_test_fa = fa.transform(X_test)
     # Predict using model
-    y_pred = clf.predict(X_test_cca)
+    y_pred = clf.predict(X_test_fa)
 
-    print(metrics.classification_report(y_test, y_pred, digits=6))
+    # print(metrics.classification_report(y_test, y_pred, digits=6))
+    print(f"Classifier: {task}")
+    if task == "attack_cat":
+        print(classification_report(y_test, y_pred, target_names=attack_labels))
+    else:
+        print(classification_report(y_test, y_pred))
     print("Accuracy: {:.2f}%".format(metrics.accuracy_score(y_test, y_pred) * 100))
     print(f"macro f1 score: {metrics.f1_score(y_test, y_pred, average='macro')}")
     print(f"micro f1 score: {metrics.f1_score(y_test, y_pred, average='micro')}\n")
+    print(f"Total Time: {time.time() - start}")
 
 
 def pre_processing(csv):
