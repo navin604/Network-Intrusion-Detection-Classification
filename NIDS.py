@@ -67,8 +67,12 @@ def svm(pima, task, model):
     X_test = pca.transform(X_test)
     y_pred = clf.predict(X_test)
 
-    print(classification_report(y_test, y_pred))
-    print(f"micro f1 score: {metrics.f1_score(y_test, y_pred, average='micro')}\n")
+    if task == "attack_cat":
+        print(classification_report(y_test, y_pred, target_names=attack_labels))
+        print(f"micro f1 score: {metrics.f1_score(y_test, y_pred, average='micro')}\n")
+    else:
+        print(classification_report(y_test, y_pred))
+
 
 
 def decision_tree(pima, task, model):
