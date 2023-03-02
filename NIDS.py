@@ -2,7 +2,6 @@ import pickle
 import sys
 import time
 from sklearn import metrics
-from sklearn.decomposition import PCA
 from sklearn.feature_selection import RFE
 import pandas as pd
 from sklearn.pipeline import make_pipeline
@@ -10,7 +9,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.tree import DecisionTreeClassifier, plot_tree
 from sklearn.linear_model import SGDClassifier
 from sklearn.preprocessing import StandardScaler
-from sklearn.decomposition import FactorAnalysis
+from sklearn.decomposition import FactorAnalysis, PCA
 from sklearn.pipeline import make_pipeline
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report
