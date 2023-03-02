@@ -2,9 +2,8 @@ import pickle
 import sys
 import time
 import numpy as np
-from matplotlib import pyplot as plt
 from sklearn import metrics
-from sklearn.feature_selection import RFE
+from sklearn.feature_selection import RFE, VarianceThreshold
 import pandas as pd
 from sklearn.tree import DecisionTreeClassifier, plot_tree
 from sklearn.linear_model import SGDClassifier
@@ -74,7 +73,6 @@ def svm(pima, task, model):
         print(classification_report(y_test, y_pred))
 
 
-
 def decision_tree(pima, task, model):
     X = pima.drop(["attack_cat", "Label"], axis=1)
     y = pima[task]
@@ -116,9 +114,11 @@ def stochastic_gradient_descent(pima, task, model):
     if not model:
         # Split data into test and train
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
+
         # Create Classifier and implement scaling
         clf = make_pipeline(StandardScaler(), SGDClassifier(max_iter=10000, loss="modified_huber"))
         # Using Factor Analysis
+
         fa = FactorAnalysis(iterated_power=10)
 
         X_train_fa = fa.fit_transform(X_train, y_train)
@@ -149,15 +149,13 @@ def stochastic_gradient_descent(pima, task, model):
     # Predict using model
     y_pred = clf.predict(X_test_fa)
 
-    # print(metrics.classification_report(y_test, y_pred, digits=6))
-    print(f"Classifier: {task}")
+    print(f"Classifier: Stochastic Gradient Descent")
     if task == "attack_cat":
-        print(classification_report(y_test, y_pred, target_names=attack_labels))
+        print(classification_report(y_test, y_pred, target_names=attack_labels,
+                                    labels=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]))
     else:
         print(classification_report(y_test, y_pred))
     print("Accuracy: {:.2f}%".format(metrics.accuracy_score(y_test, y_pred) * 100))
-    print(f"macro f1 score: {metrics.f1_score(y_test, y_pred, average='macro')}")
-    print(f"micro f1 score: {metrics.f1_score(y_test, y_pred, average='micro')}\n")
     print(f"Total Time: {time.time() - start}")
 
 
