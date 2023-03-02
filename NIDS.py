@@ -67,7 +67,7 @@ def svm(pima, task, model):
     file.close()
     X_test = pca.transform(X_test)
     y_pred = clf.predict(X_test)
-
+    print("Classifier: Support Vector Machine")
     if task == "attack_cat":
         print(classification_report(y_test, y_pred, target_names=attack_labels))
         print(f"micro f1 score: {metrics.f1_score(y_test, y_pred, average='micro')}\n")
